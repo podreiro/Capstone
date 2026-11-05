@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+<<<<<<< HEAD
 import 'package:lumen/Dados.dart';
+=======
+import 'package:lumen/Integracoes.dart';
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
 import 'package:lumen/Tema.dart';
 
 class ProfilePage extends StatefulWidget {

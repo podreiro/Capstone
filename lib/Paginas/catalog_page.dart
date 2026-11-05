@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:lumen/Componentes.dart';
+<<<<<<< HEAD
 import 'package:lumen/Dados.dart';
 
 class CatalogPage extends StatefulWidget {
   final CatalogoLocal service;
+=======
+import 'package:lumen/Integracoes.dart';
+
+class CatalogPage extends StatefulWidget {
+  final OpenLibraryService service;
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
   final LocalStore store;
 
   const CatalogPage({super.key, required this.service, required this.store});
@@ -19,11 +26,19 @@ class _CatalogPageState extends State<CatalogPage> {
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     future = widget.service.listBooks();
   }
 
   Future<void> refresh() async {
     setState(() => future = widget.service.listBooks());
+=======
+    future = widget.service.searchBooks('fiction');
+  }
+
+  Future<void> refresh() async {
+    setState(() => future = widget.service.searchBooks('fiction'));
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
   }
 
   @override

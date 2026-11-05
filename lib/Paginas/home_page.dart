@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+<<<<<<< HEAD
 import 'package:lumen/Dados.dart';
+=======
+import 'package:lumen/Integracoes.dart';
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
 import 'package:lumen/Tema.dart';
 import 'package:lumen/Paginas/catalog_page.dart';
 import 'package:lumen/Paginas/history_page.dart';
@@ -23,7 +27,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int index = 0;
+<<<<<<< HEAD
   final service = CatalogoLocal();
+=======
+  final service = OpenLibraryService();
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
   final store = LocalStore();
 
   @override

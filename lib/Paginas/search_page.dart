@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:lumen/Componentes.dart';
+<<<<<<< HEAD
 import 'package:lumen/Dados.dart';
 
 class SearchPage extends StatefulWidget {
   final CatalogoLocal service;
+=======
+import 'package:lumen/Integracoes.dart';
+
+class SearchPage extends StatefulWidget {
+  final OpenLibraryService service;
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
   final LocalStore store;
 
   const SearchPage({super.key, required this.service, required this.store});

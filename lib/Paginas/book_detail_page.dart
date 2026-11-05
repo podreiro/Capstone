@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'package:lumen/Componentes.dart';
+<<<<<<< HEAD
 import 'package:lumen/Dados.dart';
 
 class BookDetailPage extends StatefulWidget {
   final AppBook book;
   final CatalogoLocal service;
+=======
+import 'package:lumen/Integracoes.dart';
+
+class BookDetailPage extends StatefulWidget {
+  final AppBook book;
+  final OpenLibraryService service;
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
   final LocalStore store;
 
   const BookDetailPage({
@@ -120,7 +128,11 @@ class _BookDetailPageState extends State<BookDetailPage> {
               Text(
                 book.description?.trim().isNotEmpty == true
                     ? book.description!
+<<<<<<< HEAD
                     : 'Não há descrição disponível para este título no catálogo.',
+=======
+                    : 'Não há descrição disponível para este título na Open Library.',
+>>>>>>> a495bb009f4d4a7dc3e927ee7eb5c4c85bcd8aba
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       height: 1.55,
                     ),
