@@ -1,16 +1,12 @@
-# projeto_capstone
+# Lúmen — biblioteca de livros (Flutter)
 
-A new Flutter project.
+Squad Foorteen Books. Dados dos livros: Open Library API (sem chave).
 
-## Getting Started
+## Rodar
+    flutter pub get
+    flutter run
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Estrutura
+- `lib/backend/`   modelos, serviço HTTP e SharedPreferences
+- `lib/providers/` estado (Auth, Books, Library, Theme) com Provider
+- `lib/Paginas/`   telas (Login, Home, Catálogo, Busca, Lendo, Perfil, Favoritos, Detalhes, Leitura)
