@@ -1,5 +1,5 @@
 name: lumen
-description: Hub de livros Lúmen - protótipo Flutter.
+description: Lúmen - biblioteca de livros online (Capstone A3, squad Foorteen Books).
 publish_to: "none"
 version: 1.0.0+1
 
@@ -13,6 +13,8 @@ dependencies:
   shared_preferences: ^2.5.3
   http: ^1.2.2
   provider: ^6.1.2
+  url_launcher: ^6.3.1
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutter_test:

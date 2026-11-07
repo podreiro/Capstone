@@ -1,27 +1,34 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:lumen/main.dart';
+import 'package:lumen/backend/providers/auth_provider.dart';
+import 'package:lumen/backend/providers/theme_provider.dart';
+import 'package:lumen/backend/services/local_storage_service.dart';
+import 'package:lumen/frontend/app.dart';
 
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
-
-  testWidgets('Login valida o formulário e cadastra o usuário',
+  testWidgets('abre no login e mostra confirmação de senha no cadastro',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const LumenApp());
+    SharedPreferences.setMockInitialValues({});
+    final storage = LocalStorageService(await SharedPreferences.getInstance());
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider(storage)),
+          ChangeNotifierProvider(create: (_) => AuthProvider(storage)),
+        ],
+        child: const LumenApp(),
+      ),
+    );
+
+    expect(find.text('Lúmen'), findsWidgets);
+    expect(find.text('Confirmar senha'), findsNothing);
+
+    await tester.tap(find.text('Cadastrar'));
     await tester.pumpAndSettle();
 
-    // Formulário vazio: mostra erros do validator.
-    await tester.tap(find.text('Entrar').last);
-    await tester.pump();
-    expect(find.text('Informe um e-mail válido.'), findsOneWidget);
-
-    // Conta inexistente em "Entrar".
-    await tester.enterText(find.byType(TextFormField).at(0), 'a@b.com');
-    await tester.enterText(find.byType(TextFormField).at(1), '123456');
-    await tester.tap(find.text('Entrar').last);
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Conta não encontrada'), findsOneWidget);
+    expect(find.text('Confirmar senha'), findsWidgets);
   });
 }

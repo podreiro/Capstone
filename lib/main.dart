@@ -1,51 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:lumen/backend/services/local_store.dart';
+import 'package:lumen/backend/providers/auth_provider.dart';
+import 'package:lumen/backend/providers/catalog_provider.dart';
+import 'package:lumen/backend/providers/library_provider.dart';
+import 'package:lumen/backend/providers/search_provider.dart';
+import 'package:lumen/backend/providers/theme_provider.dart';
+import 'package:lumen/backend/services/local_storage_service.dart';
 import 'package:lumen/backend/services/open_library_service.dart';
-import 'package:lumen/Paginas/home_page.dart';
-import 'package:lumen/Paginas/login_page.dart';
-import 'package:lumen/providers/auth_provider.dart';
-import 'package:lumen/providers/books_provider.dart';
-import 'package:lumen/providers/library_provider.dart';
-import 'package:lumen/providers/theme_provider.dart';
+import 'package:lumen/frontend/app.dart';
 
-void main() {
+/// Ponto de entrada: monta os serviços (backend) e injeta os providers.
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const LumenApp());
-}
+  final prefs = await SharedPreferences.getInstance();
+  final storage = LocalStorageService(prefs);
+  final api = OpenLibraryService();
 
-class LumenApp extends StatelessWidget {
-  const LumenApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final store = LocalStore();
-    final api = OpenLibraryService();
-
-    return MultiProvider(
+  runApp(
+    MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider(store)..init()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(store)..load()),
-        ChangeNotifierProvider(create: (_) => LibraryProvider(store)..load()),
-        ChangeNotifierProvider(create: (_) => BooksProvider(api)),
+        Provider<OpenLibraryService>.value(value: api),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(storage)),
+        ChangeNotifierProvider(create: (_) => AuthProvider(storage)),
+        ChangeNotifierProvider(create: (_) => LibraryProvider(storage, api)),
+        ChangeNotifierProvider(create: (_) => CatalogProvider(api)..reload()),
+        ChangeNotifierProvider(create: (_) => SearchProvider(api)),
       ],
-      child: Consumer2<ThemeProvider, AuthProvider>(
-        builder: (context, theme, auth, _) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Lúmen',
-            theme: theme.themeData,
-            home: !auth.initialized
-                ? const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  )
-                : auth.isLoggedIn
-                    ? const HomePage()
-                    : const LoginPage(),
-          );
-        },
-      ),
-    );
-  }
+      child: const LumenApp(),
+    ),
+  );
 }

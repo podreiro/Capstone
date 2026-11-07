@@ -1,84 +1,108 @@
-class AppBook {
+/// Tipo de acesso à leitura online informado pela API (campo `ebook_access`).
+enum ReadAccess { free, borrow, none }
+
+class Book {
+  const Book({
+    required this.id,
+    required this.title,
+    this.authors = const [],
+    this.year,
+    this.coverId,
+    this.description,
+    this.subjects = const [],
+    this.archiveId,
+    this.access = ReadAccess.none,
+  });
+
+  /// Identificador da obra na Open Library (ex.: OL45883W).
   final String id;
   final String title;
   final List<String> authors;
   final int? year;
-  final String? coverUrl;
+  final int? coverId;
   final String? description;
   final List<String> subjects;
 
-  const AppBook({
-    required this.id,
-    required this.title,
-    required this.authors,
-    this.year,
-    this.coverUrl,
-    this.description,
-    this.subjects = const [],
-  });
+  /// Identificador da edição digital no Internet Archive (campo `ia`).
+  final String? archiveId;
+  final ReadAccess access;
 
-  AppBook copyWith({
-    String? coverUrl,
-    String? description,
-    List<String>? subjects,
-  }) {
-    return AppBook(
+  String? get coverUrl => coverId == null
+      ? null
+      : 'https://covers.openlibrary.org/b/id/$coverId-M.jpg';
+
+  String? get largeCoverUrl => coverId == null
+      ? null
+      : 'https://covers.openlibrary.org/b/id/$coverId-L.jpg';
+
+  String get workUrl => 'https://openlibrary.org/works/$id';
+
+  bool get canReadOnline => archiveId != null && access != ReadAccess.none;
+
+  /// Link para ler o livro: edição digital quando existe, senão a página da obra.
+  String get readUrl =>
+      canReadOnline ? 'https://archive.org/details/$archiveId' : workUrl;
+
+  String get authorsLabel =>
+      authors.isEmpty ? 'Autor desconhecido' : authors.join(', ');
+
+  Book copyWith({String? description, List<String>? subjects}) {
+    return Book(
       id: id,
       title: title,
       authors: authors,
       year: year,
-      coverUrl: coverUrl ?? this.coverUrl,
+      coverId: coverId,
       description: description ?? this.description,
       subjects: subjects ?? this.subjects,
+      archiveId: archiveId,
+      access: access,
     );
   }
 
-  static AppBook? fromSearchDoc(Map<String, dynamic> doc) {
-    final key = doc['key'];
-    final title = doc['title'];
-    if (key is! String || title is! String) return null;
+  /// Converte um item de `search.json` em [Book].
+  factory Book.fromSearchDoc(Map<String, dynamic> json) {
+    final key = (json['key'] as String?) ?? '';
+    final ia = json['ia'];
+    final accessRaw = json['ebook_access'];
+    final authors = json['author_name'];
+    final subjects = json['subject'];
+    final year = json['first_publish_year'];
+    final cover = json['cover_i'];
 
-    final coverId = doc['cover_i'];
-    final subjects = doc['subject'];
-    final authors = doc['author_name'];
-    final year = doc['first_publish_year'];
-
-    return AppBook(
+    return Book(
       id: key.split('/').last,
-      title: title,
-      authors: authors is List ? authors.map((e) => '$e').toList() : const [],
-      year: year is int ? year : null,
-      coverUrl: coverId is int ? coverUrlFromId(coverId) : null,
+      title: (json['title'] as String?) ?? 'Sem título',
+      authors: authors is List ? authors.map((e) => e.toString()).toList() : [],
+      year: year is num ? year.toInt() : null,
+      coverId: cover is num ? cover.toInt() : null,
       subjects: subjects is List
-          ? subjects.take(8).map((e) => '$e').toList()
-          : const [],
+          ? subjects.map((e) => e.toString()).take(8).toList()
+          : [],
+      archiveId: ia is List && ia.isNotEmpty ? ia.first.toString() : null,
+      access: accessRaw == 'public'
+          ? ReadAccess.free
+          : accessRaw == 'borrowable'
+              ? ReadAccess.borrow
+              : ReadAccess.none,
     );
   }
 
-  static String coverUrlFromId(int coverId) =>
-      'https://covers.openlibrary.org/b/id/$coverId-M.jpg';
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'authors': authors,
-        'year': year,
-        'coverUrl': coverUrl,
-        'description': description,
-        'subjects': subjects,
-      };
-
-  factory AppBook.fromJson(Map<String, dynamic> json) => AppBook(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        authors: (json['authors'] as List? ?? const [])
-            .map((e) => '$e')
-            .toList(),
-        year: json['year'] as int?,
-        coverUrl: json['coverUrl'] as String?,
-        description: json['description'] as String?,
-        subjects: (json['subjects'] as List? ?? const [])
-            .map((e) => '$e')
-            .toList(),
-      );
+  /// A descrição da obra pode vir como texto ou como `{type, value}`.
+  static String? parseDescription(dynamic raw) {
+    String? text;
+    if (raw is String) {
+      text = raw;
+    } else if (raw is Map && raw['value'] is String) {
+      text = raw['value'] as String;
+    }
+    if (text == null) return null;
+    text = text.split(RegExp(r'\r?\n-{5,}')).first;
+    text = text.replaceAllMapped(
+      RegExp(r'\[([^\]]+)\]\([^)]*\)'),
+      (m) => m.group(1) ?? '',
+    );
+    text = text.replaceAll('\r\n', '\n').trim();
+    return text.isEmpty ? null : text;
+  }
 }
