@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:lumen/backend/providers/auth_provider.dart';
@@ -6,6 +7,7 @@ import 'package:lumen/backend/providers/library_provider.dart';
 import 'package:lumen/backend/providers/theme_provider.dart';
 import 'package:lumen/frontend/screens/about_screen.dart';
 import 'package:lumen/frontend/screens/favorites_screen.dart';
+import 'package:lumen/frontend/theme/app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -20,28 +22,33 @@ class ProfileScreen extends StatelessWidget {
   static String _themeDescription(ReadingTheme theme) {
     switch (theme) {
       case ReadingTheme.creme:
-        return 'Creme: contraste suave, inspirado no papel, ideal para leitura longa.';
+        return 'Creme: contraste suave inspirado no papel, ideal para leitura prolongada.';
       case ReadingTheme.branco:
-        return 'Branco: maior contraste para estudos e consultas rápidas.';
       case ReadingTheme.noturno:
-        return 'Noturno: fundo escuro e texto suave para ambientes com pouca luz.';
+        return 'Noturno Âmbar: paleta cinematográfica com acentos dourados e pretos profundos.';
     }
   }
 
   Future<void> _logout(BuildContext context) async {
+    final colors = context.lumen;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Sair da conta?'),
-        content: const Text('Você precisará entrar novamente para continuar.'),
+        backgroundColor: colors.surface,
+        title: Text('Sair da conta?', style: TextStyle(color: colors.textPrimary)),
+        content: Text(
+          'Você precisará entrar novamente para continuar.',
+          style: TextStyle(color: colors.textMuted),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: Text('Cancelar', style: TextStyle(color: colors.textMuted)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Sair'),
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFCF6679)),
+            child: const Text('Sair', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -53,8 +60,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final themeProvider = context.watch<ThemeProvider>();
+    final colors = context.lumen;
     final favorites = context.select<LibraryProvider, int>(
       (l) => l.favoriteCount,
     );
@@ -63,26 +70,71 @@ class ProfileScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Meu perfil')),
+      backgroundColor: colors.bg,
+      appBar: AppBar(
+        title: Text(
+          'Meu perfil',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: colors.textPrimary,
+          ),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          Card(
-            margin: EdgeInsets.zero,
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(14),
-              leading: CircleAvatar(
-                radius: 26,
-                child: Text(email.isNotEmpty ? email[0].toUpperCase() : 'L'),
-              ),
-              title: const Text(
-                'Leitor Lúmen',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              subtitle: Text(email),
+          // Cartão do Usuário
+          Container(
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colors.border),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: colors.accent,
+                  child: Text(
+                    email.isNotEmpty ? email[0].toUpperCase() : 'L',
+                    style: GoogleFonts.inter(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: colors.accentText,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Leitor Lúmen',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: colors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+
+          // Cards de Estatísticas (Favoritos / Lendo)
           Row(
             children: [
               _StatCard(
@@ -100,20 +152,36 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 26),
+          const SizedBox(height: 28),
+
+          // Conforto de leitura
           Text(
             'Conforto de leitura',
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'Escolha a aparência que combina com seu momento de leitura. '
             'Sua escolha fica salva neste dispositivo.',
-            style: textTheme.bodyMedium,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: colors.textMuted,
+            ),
           ),
           const SizedBox(height: 14),
           SegmentedButton<ReadingTheme>(
             showSelectedIcon: false,
+            style: SegmentedButton.styleFrom(
+              backgroundColor: colors.surface,
+              selectedBackgroundColor: colors.accent,
+              selectedForegroundColor: colors.accentText,
+              foregroundColor: colors.textPrimary,
+              side: BorderSide(color: colors.border),
+            ),
             segments: const [
               ButtonSegment(
                 value: ReadingTheme.creme,
@@ -121,41 +189,63 @@ class ProfileScreen extends StatelessWidget {
                 label: Text('Creme'),
               ),
               ButtonSegment(
-                value: ReadingTheme.branco,
-                icon: Icon(Icons.light_mode_outlined),
-                label: Text('Branco'),
-              ),
-              ButtonSegment(
                 value: ReadingTheme.noturno,
                 icon: Icon(Icons.dark_mode_outlined),
                 label: Text('Noturno'),
               ),
             ],
-            selected: {themeProvider.theme},
+            selected: {
+              themeProvider.theme == ReadingTheme.creme
+                  ? ReadingTheme.creme
+                  : ReadingTheme.noturno
+            },
             onSelectionChanged: (value) => themeProvider.setTheme(value.first),
           ),
           const SizedBox(height: 10),
           Text(
             _themeDescription(themeProvider.theme),
-            style: textTheme.bodySmall,
-          ),
-          const SizedBox(height: 20),
-          Card(
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: ListTile(
-              onTap: () => AboutScreen.open(context),
-              leading: const Icon(Icons.info_outline),
-              title: const Text('Sobre o Lúmen'),
-              subtitle: const Text('Squad, créditos e fonte dos dados.'),
-              trailing: const Icon(Icons.chevron_right),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: colors.textMuted,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
+
+          // Botão Sobre
+          Container(
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colors.border),
+            ),
+            child: ListTile(
+              onTap: () => AboutScreen.open(context),
+              leading: Icon(Icons.info_outline, color: colors.accent),
+              title: Text('Sobre o Lúmen', style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(
+                'Squad, créditos e fonte dos dados.',
+                style: TextStyle(color: colors.textMuted, fontSize: 12),
+              ),
+              trailing: Icon(Icons.chevron_right, color: colors.textMuted),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Sair da Conta
           OutlinedButton.icon(
             onPressed: () => _logout(context),
-            icon: const Icon(Icons.logout),
-            label: const Text('Sair da conta'),
+            icon: const Icon(Icons.logout, size: 18, color: Color(0xFFCF6679)),
+            label: const Text(
+              'Sair da conta',
+              style: TextStyle(color: Color(0xFFCF6679)),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFCF6679)),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
           ),
         ],
       ),
@@ -178,28 +268,39 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.lumen;
+
     return Expanded(
-      child: Card(
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-            child: Column(
-              children: [
-                Icon(icon),
-                const SizedBox(height: 6),
-                Text(
-                  '$value',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w800),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: colors.border),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: colors.accent, size: 24),
+              const SizedBox(height: 8),
+              Text(
+                '$value',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: colors.textPrimary,
                 ),
-                Text(label),
-              ],
-            ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: colors.textMuted,
+                ),
+              ),
+            ],
           ),
         ),
       ),

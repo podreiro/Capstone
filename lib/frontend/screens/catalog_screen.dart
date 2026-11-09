@@ -2,94 +2,160 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:lumen/backend/providers/catalog_provider.dart';
-import 'package:lumen/frontend/widgets/paged_book_grid.dart';
+import 'package:lumen/backend/services/open_library_service.dart';
+import 'package:lumen/frontend/theme/app_theme.dart';
+import 'package:lumen/frontend/widgets/book_shelf_row.dart';
+import 'package:lumen/frontend/widgets/hero_carousel.dart';
 import 'package:lumen/frontend/widgets/state_views.dart';
 
-/// Grid principal: livros da API filtrados por categoria.
-class CatalogScreen extends StatelessWidget {
+/// Tela principal: hero em carrossel cinematográfico + prateleiras horizontais
+/// com carregamento preguiçoso (lazy) e visual estilo Netflix (Top 10 + Shimmer).
+class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key, required this.onOpenSearch});
 
   final VoidCallback onOpenSearch;
 
   @override
-  Widget build(BuildContext context) {
-    final catalog = context.watch<CatalogProvider>();
-    final textTheme = Theme.of(context).textTheme;
+  State<CatalogScreen> createState() => _CatalogScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Lúmen',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Buscar livros',
-            onPressed: onOpenSearch,
-            icon: const Icon(Icons.search),
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-            child: Text(
-              'Encontre sua próxima história.',
-              style: textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-            child: Text(
-              'Escolha uma categoria e leia direto pelo navegador.',
-              style: textTheme.bodyMedium,
-            ),
-          ),
-          SizedBox(
-            height: 44,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: CatalogProvider.categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) => ChoiceChip(
-                label: Text(CatalogProvider.categories[i].label),
-                selected: catalog.selected == i,
-                onSelected: (_) => catalog.selectCategory(i),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(child: _content(catalog)),
-        ],
-      ),
-    );
+class _CatalogScreenState extends State<CatalogScreen> {
+  late final List<ShelfProvider> _shelves;
+
+  @override
+  void initState() {
+    super.initState();
+    final service = context.read<OpenLibraryService>();
+    _shelves = CatalogProvider.categories
+        .map((cat) => ShelfProvider(service, cat))
+        .toList();
+
+    // Carrega apenas a primeira prateleira (Destaques) inicialmente
+    _shelves[0].ensureLoaded();
   }
 
-  Widget _content(CatalogProvider catalog) {
-    if (catalog.loading) {
-      return const LoadingView(message: 'Buscando livros…');
+  @override
+  void dispose() {
+    for (final shelf in _shelves) {
+      shelf.dispose();
     }
-    if (catalog.error != null) {
-      return ErrorState(message: catalog.error!, onRetry: catalog.reload);
-    }
-    if (catalog.items.isEmpty) {
-      return const EmptyState(
-        icon: Icons.menu_book_outlined,
-        title: 'Nenhum livro encontrado',
-        message: 'Tente outra categoria.',
-      );
-    }
-    return PagedBookGrid(
-      books: catalog.items,
-      hasMore: catalog.hasMore,
-      loadingMore: catalog.loadingMore,
-      moreError: catalog.moreError,
-      onLoadMore: catalog.loadMore,
-      onRefresh: catalog.reload,
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.lumen;
+
+    return Scaffold(
+      backgroundColor: colors.bg,
+      body: CustomScrollView(
+        slivers: [
+          // AppBar flutuante integrada ao tema
+          SliverAppBar(
+            pinned: false,
+            floating: true,
+            backgroundColor: Colors.transparent,
+            expandedHeight: 0,
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    colors.bg.withAlpha(200),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+            title: Text(
+              'Lúmen',
+              style: TextStyle(
+                color: colors.accent,
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                letterSpacing: 0.5,
+              ),
+            ),
+            actions: [
+              IconButton(
+                tooltip: 'Buscar livros',
+                onPressed: widget.onOpenSearch,
+                icon: Icon(Icons.search, color: colors.textPrimary),
+              ),
+            ],
+          ),
+
+          // Hero Carousel com Shimmer placeholder
+          SliverToBoxAdapter(
+            child: AnimatedBuilder(
+              animation: _shelves[0],
+              builder: (context, _) {
+                final shelf = _shelves[0];
+                if (shelf.loading && shelf.items.isEmpty) {
+                  return const ShimmerHero();
+                }
+                if (shelf.error != null && shelf.items.isEmpty) {
+                  return SizedBox(
+                    height: 320,
+                    child: ErrorState(
+                      message: shelf.error!,
+                      onRetry: shelf.reload,
+                    ),
+                  );
+                }
+                if (shelf.items.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return HeroCarousel(books: shelf.items);
+              },
+            ),
+          ),
+
+          // Espaço entre hero e prateleiras
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+          // Prateleiras por categoria carregadas preguiçosamente
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final category = CatalogProvider.categories[index];
+                final shelf = _shelves[index];
+
+                // Lazy load: dispara a requisição quando a prateleira entra no viewport
+                shelf.ensureLoaded();
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 26),
+                  child: AnimatedBuilder(
+                    animation: shelf,
+                    builder: (context, _) {
+                      if (shelf.loading && shelf.items.isEmpty) {
+                        return ShimmerShelf(title: category.label);
+                      }
+                      if (shelf.error != null && shelf.items.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      if (shelf.items.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return BookShelfRow(
+                        title: category.label,
+                        books: shelf.items,
+                        isTop10: index == 0, // Destaques ganha estilo Top 10
+                        onLoadMore: shelf.hasMore ? shelf.loadMore : null,
+                      );
+                    },
+                  ),
+                );
+              },
+              childCount: CatalogProvider.categories.length,
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
     );
   }
 }

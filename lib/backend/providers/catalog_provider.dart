@@ -38,3 +38,26 @@ class CatalogProvider extends PagedBooksProvider {
     reload();
   }
 }
+
+/// Provider para uma prateleira específica (uma linha da tela Netflix).
+/// Carrega a categoria de forma preguiçosa (lazy) via [ensureLoaded].
+class ShelfProvider extends PagedBooksProvider {
+  ShelfProvider(super.service, this.category);
+
+  final BookCategory category;
+  bool _hasStarted = false;
+
+  void ensureLoaded() {
+    if (_hasStarted) return;
+    _hasStarted = true;
+    reload();
+  }
+
+  @override
+  Future<SearchResult> fetchPage(int page) => service.searchBooks(
+        query: category.query,
+        page: page,
+        limit: 20,
+        sort: 'readinglog',
+      );
+}
