@@ -9,6 +9,7 @@ class LocalStorageService {
   final SharedPreferences _prefs;
 
   static const _usersKey = 'lumen_users';
+  static const _sessionKey = 'lumen_session';
   static const _themeKey = 'lumen_reading_theme';
   static const _favoritesPrefix = 'favorites_';
   static const _historyPrefix = 'historyPreferences_';
@@ -31,6 +32,17 @@ class LocalStorageService {
   bool userExists(String email) => _readUsers().containsKey(_norm(email));
 
   String? passwordHash(String email) => _readUsers()[_norm(email)];
+
+  String? get sessionEmail {
+    final email = _prefs.getString(_sessionKey);
+    if (email == null || !userExists(email)) return null;
+    return _norm(email);
+  }
+
+  Future<void> saveSession(String email) =>
+      _prefs.setString(_sessionKey, _norm(email));
+
+  Future<void> clearSession() => _prefs.remove(_sessionKey);
 
   Future<void> saveUser(String email, String hash) async {
     final users = _readUsers();

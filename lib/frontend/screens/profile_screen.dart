@@ -55,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
     );
     if (confirmed != true || !context.mounted) return;
     context.read<LibraryProvider>().clear();
-    context.read<AuthProvider>().logout();
+    await context.read<AuthProvider>().logout();
   }
 
   @override
