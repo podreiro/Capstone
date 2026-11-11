@@ -39,6 +39,8 @@ class ReadingScreen extends StatelessWidget {
 
     final hasBanner = library.error != null;
     return RefreshIndicator(
+      color: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       onRefresh: library.refresh,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),

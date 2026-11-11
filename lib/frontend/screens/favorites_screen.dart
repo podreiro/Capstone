@@ -48,6 +48,8 @@ class FavoritesScreen extends StatelessWidget {
 
     final hasBanner = library.error != null;
     return RefreshIndicator(
+      color: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       onRefresh: library.refresh,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -68,7 +70,7 @@ class FavoritesScreen extends StatelessWidget {
               trailing: IconButton(
                 tooltip: 'Remover dos favoritos',
                 onPressed: () => toggleFavoriteWithFeedback(context, book),
-                icon: const Icon(Icons.favorite),
+                icon: const Icon(Icons.favorite, color: Color(0xFFE8A838)),
               ),
             ),
           );

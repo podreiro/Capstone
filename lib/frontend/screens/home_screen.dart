@@ -6,6 +6,7 @@ import 'package:lumen/frontend/screens/catalog_screen.dart';
 import 'package:lumen/frontend/screens/profile_screen.dart';
 import 'package:lumen/frontend/screens/reading_screen.dart';
 import 'package:lumen/frontend/screens/search_screen.dart';
+import 'package:lumen/frontend/theme/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.email});
@@ -33,8 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final reading = context.select<LibraryProvider, int>((l) => l.historyCount);
+    final colors = context.lumen;
 
     return Scaffold(
+      backgroundColor: colors.bg,
       body: IndexedStack(
         index: _index,
         children: [
@@ -44,38 +47,55 @@ class _HomeScreenState extends State<HomeScreen> {
           ProfileScreen(email: widget.email, onOpenReading: () => _goTo(2)),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _goTo,
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Início',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: colors.bg,
+          border: Border(
+            top: BorderSide(color: colors.border, width: 1),
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Buscar',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: reading > 0,
-              label: Text('$reading'),
-              child: const Icon(Icons.auto_stories_outlined),
+        ),
+        child: NavigationBar(
+          backgroundColor: colors.bg,
+          surfaceTintColor: Colors.transparent,
+          indicatorColor: colors.accent.withAlpha(40),
+          selectedIndex: _index,
+          onDestinationSelected: _goTo,
+          height: 64,
+          destinations: [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined, color: colors.textMuted),
+              selectedIcon: Icon(Icons.home, color: colors.accent),
+              label: 'Início',
             ),
-            selectedIcon: Badge(
-              isLabelVisible: reading > 0,
-              label: Text('$reading'),
-              child: const Icon(Icons.auto_stories),
+            NavigationDestination(
+              icon: Icon(Icons.search, color: colors.textMuted),
+              selectedIcon: Icon(Icons.search, color: colors.accent),
+              label: 'Buscar',
             ),
-            label: 'Lendo',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: reading > 0,
+                backgroundColor: colors.accent,
+                textColor: colors.accentText,
+                label: Text('$reading'),
+                child: Icon(Icons.auto_stories_outlined, color: colors.textMuted),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: reading > 0,
+                backgroundColor: colors.accent,
+                textColor: colors.accentText,
+                label: Text('$reading'),
+                child: Icon(Icons.auto_stories, color: colors.accent),
+              ),
+              label: 'Lendo',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline, color: colors.textMuted),
+              selectedIcon: Icon(Icons.person, color: colors.accent),
+              label: 'Perfil',
+            ),
+          ],
+        ),
       ),
     );
   }
