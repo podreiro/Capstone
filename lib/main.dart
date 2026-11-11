@@ -25,7 +25,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider(storage)),
         ChangeNotifierProvider(create: (_) => AuthProvider(storage)),
         ChangeNotifierProvider(create: (_) => LibraryProvider(storage, api)),
-        ChangeNotifierProvider(create: (_) => CatalogProvider(api)..reload()),
+        ChangeNotifierProvider(create: (_) => CatalogProvider(api)),
         ChangeNotifierProvider(create: (_) => SearchProvider(api)),
       ],
       child: const LumenApp(),

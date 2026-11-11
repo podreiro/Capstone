@@ -8,6 +8,20 @@ import 'package:lumen/backend/services/local_storage_service.dart';
 import 'package:lumen/frontend/app.dart';
 
 void main() {
+  test('mantém a sessão após recriar o provider e encerra no logout', () async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = LocalStorageService(await SharedPreferences.getInstance());
+    final auth = AuthProvider(storage);
+
+    expect(await auth.register('leitor@example.com', 'senha-segura'), isNull);
+
+    final restoredAuth = AuthProvider(storage);
+    expect(restoredAuth.email, 'leitor@example.com');
+
+    await restoredAuth.logout();
+    expect(AuthProvider(storage).isLoggedIn, isFalse);
+  });
+
   testWidgets('abre no login e mostra confirmação de senha no cadastro',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
